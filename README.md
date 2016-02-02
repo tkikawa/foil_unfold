@@ -21,9 +21,9 @@ You can take new cross section data from ENDF.
 ### Installation of ROOT
 - Download the codes from [ROOT website](https://root.cern.ch/downloading-root) and decompress it.
 - Set environment variables as follows.
-export ROOTSYS=(path to ROOT installation directory)
-export PATH=${ROOTSYS}/bin:${PATH}
-export LD_LIBRARY_PATH=${ROOTSYS}/lib:${LD_LIBRARY_PATH}
+  export ROOTSYS=(path to ROOT installation directory)
+  export PATH=${ROOTSYS}/bin:${PATH}
+  export LD_LIBRARY_PATH=${ROOTSYS}/lib:${LD_LIBRARY_PATH}
 
 ### Installation of this unfolding code
 - make
@@ -49,10 +49,10 @@ This card specifies the general information of the program.
 ### COVERS
 This card specifies the information about the covers surrouding the activation foils.
 Properties of the covers are listed in the following style.
-Name  Cross_section_file  Density[g/cm3]  Mass_number  Abundance  Thickness[cm]
+Name, Cross_section_file, Density[g/cm3], Mass_number, Abundance, Thickness[cm]
 
 ### FOILS
 This card specifies the information about the activation foils.
 Properties of the foils are listed in the following style.
-Name  Cross_section_file  Density[g/cm3]  Mass_number  Abundance  Thickness[cm]  Produced_RI  Error_on_produced_RI  Covers...
+Name, Cross_section_file, Density[g/cm3], Mass_number, Abundance, Thickness[cm], Produced_RI, Error_on_produced_RI, Covers...
 More than one cover can be used for one foil.
