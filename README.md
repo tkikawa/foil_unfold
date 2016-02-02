@@ -20,10 +20,10 @@ You can take new cross section data from ENDF.
 
 ### Installation of ROOT
 - Download the codes from [ROOT website](https://root.cern.ch/downloading-root) and decompress it.
-- Set environment variables as follows.
-  export ROOTSYS=(path to ROOT installation directory)
-  export PATH=${ROOTSYS}/bin:${PATH}
-  export LD_LIBRARY_PATH=${ROOTSYS}/lib:${LD_LIBRARY_PATH}
+- Set environment variables as follows.  
+export ROOTSYS=(path to ROOT installation directory)  
+export PATH=${ROOTSYS}/bin:${PATH}  
+export LD_LIBRARY_PATH=${ROOTSYS}/lib:${LD_LIBRARY_PATH}
 
 ### Installation of this unfolding code
 - make
