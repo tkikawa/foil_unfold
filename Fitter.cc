@@ -3,6 +3,8 @@
 #include <TAxis.h>
 #include <TCanvas.h>
 #include <TRandom3.h>
+#include <TStyle.h>
+#include <TColor.h>
 
 #include "Fitter.hh"
 
@@ -32,17 +34,27 @@ void Fitter::Fit()
 
   min->SetFunction(f);
 
-  min->SetLowerLimitedVariable(0,"A",1., 0.01, 0);
-  //min->SetFixedVariable(0,"A",1.11883);
-  min->SetLowerLimitedVariable(1,"T",75., 0.01, 0);
+  min->SetLowerLimitedVariable(0,"A",5.e9, 5.e7, 0);
+  //min->SetFixedVariable(0,"A",4.80e9);
+  min->SetLowerLimitedVariable(1,"T",80., 0.8, 0);
   //min->SetFixedVariable(1,"T",8.02051e1);
-  min->SetLowerLimitedVariable(2,"B",1.e-2, 0.01, 0);
-  //min->SetFixedVariable(2,"B",1.27352e-2);
+  min->SetLowerLimitedVariable(2,"B",5.e7, 5.e5, 0);
+  //min->SetFixedVariable(2,"B",5.464e7);
   min->SetLowerLimitedVariable(3,"C",1., 0.01, 0);
   //min->SetFixedVariable(3,"C",1.14278);
 
   // do the minimization
-  min->Minimize();
+  bool converge = min->Minimize();
+  if(!converge){
+    std::cout << "Minimization did not converge." << std::endl;
+    int status = min->Status();
+    if(status == 1) std::cout << "Covariance was made pos defined." << std::endl;
+    if(status == 2) std::cout << "Hesse is invalid." << std::endl;
+    if(status == 3) std::cout << "Edm is above max." << std::endl;
+    if(status == 4) std::cout << "Reached call limit." << std::endl;
+    if(status == 5) std::cout << "Other failure." << std::endl;
+    exit(1);
+  }
 }
 
 double Fitter::chi_sq(const double *p){
@@ -53,7 +65,7 @@ double Fitter::chi_sq(const double *p){
     for(int j=0;j<foils[i].N-1;j++){
       RI_exp += cover((foils[i].energy[j+1]+foils[i].energy[j])/2,foils[i])*spectrum((foils[i].energy[j+1]+foils[i].energy[j])/2,p)*(foils[i].energy[j+1]-foils[i].energy[j])*(foils[i].xsec[j+1]+foils[i].xsec[j])/2*foils[i].density*foils[i].thickness*foils[i].abundance/foils[i].A*NA;
     }
-    chi2 += pow(foils[i].RI-RI_exp,2)/pow(foils[i].RI_err,2);
+    chi2 += pow(foils[i].RI-RI_exp,2)/pow(foils[i].RI*foils[i].RI_err,2);
   }
   chi2 /= foils.size();
   return chi2;
@@ -81,8 +93,14 @@ double Fitter::cover(double E, Foil foil){
 
 void Fitter::ShowSummary()
 {
-  const double *p = min->X();
+  const double *p   = min->X();
+  const double *err = min->Errors();
   const double chi2 = min->MinValue();
+  std::cout<<"A = "<<p[0]<<" +/- "<<err[0]<<" ("<<err[0]/p[0]*100<<"% error)"<<std::endl;
+  std::cout<<"T = "<<p[1]<<" +/- "<<err[1]<<" ("<<err[1]/p[1]*100<<"% error)"<<std::endl;
+  std::cout<<"B = "<<p[2]<<" +/- "<<err[2]<<" ("<<err[2]/p[2]*100<<"% error)"<<std::endl;
+  std::cout<<"C = "<<p[3]<<" +/- "<<err[3]<<" ("<<err[3]/p[3]*100<<"% error)"<<std::endl;
+  std::cout<<"Minimum chi2 = "<<chi2<<std::endl;
   //min->PrintResults();
 }
 
@@ -92,7 +110,9 @@ void Fitter::DrawSpectrum(bool err)
   TF1 *spec = new TF1("spec", this, &Fitter::spect,1e-4,1e7,npar);
   spec->SetParameters(p[0],p[1],p[2],p[3]);
   spec->SetLineColor(1);
+  spec->SetLineWidth(2);
 
+  setstyle();
   if(!err){
     TCanvas *c1 = new TCanvas("c1","c1");
     spec->GetXaxis()->SetTitle("Neutron energy (eV)");
@@ -128,6 +148,7 @@ void Fitter::DrawSpectrum(bool err)
     double nrand[npar], par[npar];
     TRandom3 rand;
     double E;
+
     std::cout<<"Start toy MC for error estimation"<<std::endl;
     for(int k=0;k<100000;k++){
       if(k%10000==0)std::cout<<k<<"th toy MC event"<<std::endl;
@@ -147,52 +168,87 @@ void Fitter::DrawSpectrum(bool err)
       }
     }
     TH2D *hcont = new TH2D("hcont","hcont",1100,xedge,1000,yedge);
+    TH1D *herr = new TH1D("herr","herr",1100,xedge);
     for(int l=0;l<1100;l++){
       for(int k=0;k<1000;k++){
 	hcont->SetBinContent(l+1,k+1,htmp[l]->GetBinContent(k+1)/htmp[l]->GetMaximum());
       }
+      herr->SetBinContent(l+1,htmp[l]->GetRMS()/htmp[l]->GetMean()*100);
     }
-    
+
     double param[1]={exp(-0.5)};
     hcont->SetContour(1,param);
     TCanvas *c1 = new TCanvas("c1","c1");
     hcont->GetXaxis()->SetTitle("Neutron energy (eV)");
     hcont->GetYaxis()->SetTitle("Neutron flux (/eV)");
-    hcont->SetFillColor(2);
-    hcont->SetFillStyle(3001);
     hcont->Draw("cont3");
     spec->Draw("same");
     c1->Draw();
     c1->SetLogx();
     c1->SetLogy();
     c1->WaitPrimitive();
+
+    TCanvas *c2 = new TCanvas("c2","c2");
+    herr->GetXaxis()->SetRangeUser(0,100);
+    herr->SetLineColor(1);
+    herr->SetLineWidth(2);
+    herr->GetXaxis()->SetTitle("Neutron energy (eV)");
+    herr->GetYaxis()->SetTitle("Neutron flux error (%)");
+    herr->Draw("C");
+    c2->Draw();
+    c2->SetLogx();
+    c2->WaitPrimitive();
+
   }
 }
 
 void Fitter::DrawCovariance()
 {
-  TCanvas *c1 = new TCanvas("c1","c1");
-  TH2D *mat = new TH2D("mat","mat",npar,0,npar,npar,0,npar);
+  const double *p = min->X();
+  TH2D *cov_mat = new TH2D("cov_mat","cov_mat",npar,0,npar,npar,0,npar);
+  double max = 0;
   for(int i=0;i<npar;i++){
     for(int j=0;j<npar;j++){
-      mat->Fill(i,j,min->CovMatrix(i,j));
+      cov_mat->SetBinContent(i+1,j+1,min->CovMatrix(i,j)/p[i]/p[j]);
+      if(fabs(cov_mat->GetBinContent(i+1,j+1))>max)max = fabs(cov_mat->GetBinContent(i+1,j+1));
     }
   }
-  mat->Draw("colz");
+
+  std::cout<<"Covariance matrix"<<std::endl;
+  std::cout<<cov_mat->GetBinContent(1,1)<<" "<<cov_mat->GetBinContent(2,1)<<" "<<cov_mat->GetBinContent(3,1)<<" "<<cov_mat->GetBinContent(4,1)<<std::endl;
+  std::cout<<cov_mat->GetBinContent(1,2)<<" "<<cov_mat->GetBinContent(2,2)<<" "<<cov_mat->GetBinContent(3,2)<<" "<<cov_mat->GetBinContent(4,2)<<std::endl;
+  std::cout<<cov_mat->GetBinContent(1,3)<<" "<<cov_mat->GetBinContent(2,3)<<" "<<cov_mat->GetBinContent(3,3)<<" "<<cov_mat->GetBinContent(4,3)<<std::endl;
+  std::cout<<cov_mat->GetBinContent(1,4)<<" "<<cov_mat->GetBinContent(2,4)<<" "<<cov_mat->GetBinContent(3,4)<<" "<<cov_mat->GetBinContent(4,4)<<std::endl;
+
+  setstyle();
+  TCanvas *c1 = new TCanvas("c1","c1",0,0,600,600);
+  cov_mat->GetZaxis()->SetRangeUser(-max,max);
+  cov_mat->SetMarkerSize(2);
+  cov_mat->Draw("text colz");
   c1->Draw();
   c1->WaitPrimitive();
 }
 
 void Fitter::DrawCorrelation()
 {
-  TCanvas *c1 = new TCanvas("c1","c1");
-  TH2D *mat = new TH2D("mat","mat",npar,0,npar,npar,0,npar);
+  TH2D *cor_mat = new TH2D("cor_mat","cor_mat",npar,0,npar,npar,0,npar);
   for(int i=0;i<npar;i++){
     for(int j=0;j<npar;j++){
-      mat->Fill(i,j,min->Correlation(i,j));
+      cor_mat->Fill(i,j,min->Correlation(i,j));
     }
   }
-  mat->Draw("colz");
+
+  std::cout<<"Correlation matrix"<<std::endl;
+  std::cout<<cor_mat->GetBinContent(1,1)<<" "<<cor_mat->GetBinContent(2,1)<<" "<<cor_mat->GetBinContent(3,1)<<" "<<cor_mat->GetBinContent(4,1)<<std::endl;
+  std::cout<<cor_mat->GetBinContent(1,2)<<" "<<cor_mat->GetBinContent(2,2)<<" "<<cor_mat->GetBinContent(3,2)<<" "<<cor_mat->GetBinContent(4,2)<<std::endl;
+  std::cout<<cor_mat->GetBinContent(1,3)<<" "<<cor_mat->GetBinContent(2,3)<<" "<<cor_mat->GetBinContent(3,3)<<" "<<cor_mat->GetBinContent(4,3)<<std::endl;
+  std::cout<<cor_mat->GetBinContent(1,4)<<" "<<cor_mat->GetBinContent(2,4)<<" "<<cor_mat->GetBinContent(3,4)<<" "<<cor_mat->GetBinContent(4,4)<<std::endl;
+
+  setstyle();
+  TCanvas *c1 = new TCanvas("c1","c1",0,0,600,600);
+  cor_mat->GetZaxis()->SetRangeUser(-1,1);
+  cor_mat->SetMarkerSize(2);
+  cor_mat->Draw("text colz");
   c1->Draw();
   c1->WaitPrimitive();
 }
@@ -200,9 +256,9 @@ void Fitter::DrawCorrelation()
 void Fitter::cholcov_conv(double covmat[npar][npar], double cholcovmat[npar][npar])
 {
   memset(cholcovmat,0,sizeof(cholcovmat));
-  for ( Int_t j=0; j<npar; j++ ) {
-    Double_t s = covmat[j][j] ;
-    for ( Int_t k=0; k<j; k++ ) {
+  for ( int j=0; j<npar; j++ ) {
+    double s = covmat[j][j] ;
+    for ( int k=0; k<j; k++ ) {
       s -= cholcovmat[j][k]*cholcovmat[j][k] ;
     }
     if(s<0){
@@ -211,9 +267,9 @@ void Fitter::cholcov_conv(double covmat[npar][npar], double cholcovmat[npar][npa
     }
     cholcovmat[j][j] = sqrt(s) ;
     
-    for ( Int_t i=j+1; i<npar; i++ ) {
+    for ( int i=j+1; i<npar; i++ ) {
       s = covmat[i][j] ;
-      for ( Int_t k=0; k<j; k++ ) {
+      for ( int k=0; k<j; k++ ) {
 	s -= cholcovmat[i][k]*cholcovmat[j][k] ;
       }
       if ( TMath::Abs(s)<0.000000000001 )
@@ -222,4 +278,56 @@ void Fitter::cholcov_conv(double covmat[npar][npar], double cholcovmat[npar][npa
 	cholcovmat[i][j] = s/cholcovmat[j][j] ;
     }
   }
+}
+
+void Fitter::setstyle(){
+  gStyle->SetLabelFont(132,"axis1");
+  gStyle->SetFrameBorderMode(0);
+  gStyle->SetCanvasBorderMode(0);
+  gStyle->SetPadBorderMode(0);
+  gStyle->SetFrameFillColor (0);
+  gStyle->SetCanvasColor(0);
+  gStyle->SetPadColor(0);
+  gStyle->SetStatColor(0);
+  gStyle->SetLegendBorderSize(1);
+  gStyle->SetPadBottomMargin(0.15);
+  gStyle->SetPadLeftMargin(0.15);
+  gStyle->SetTextFont(132);
+  gStyle->SetTextSize(0.08);
+  gStyle->SetLabelFont(132,"x");
+  gStyle->SetLabelFont(132,"y");
+  gStyle->SetLabelFont(132,"z");
+  gStyle->SetLabelSize(0.05,"x");
+  gStyle->SetTitleSize(0.06,"x");
+  gStyle->SetLabelSize(0.05,"y");
+  gStyle->SetTitleSize(0.06,"y");
+  gStyle->SetLabelSize(0.05,"z");
+  gStyle->SetTitleSize(0.06,"z");
+  gStyle->SetLabelFont(132,"t");
+  gStyle->SetTitleFont(132,"x");
+  gStyle->SetTitleFont(132,"y");
+  gStyle->SetTitleFont(132,"z");
+  gStyle->SetTitleFont(132,"t");
+  gStyle->SetTitleFillColor(0);
+  gStyle->SetTitleX(0.25);
+  gStyle->SetTitleFontSize(0.08);
+  gStyle->SetTitleFont(132,"pad");
+  gStyle->SetMarkerStyle(20);
+  gStyle->SetHistLineWidth(1.85);
+  gStyle->SetLineStyleString(2,"[12 12]");
+  gStyle->SetOptTitle(0);
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(0);
+  gStyle->SetPadTickX(1);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPalette(1,0);
+
+  const int NRGBs = 3;
+  const int NCont = 255;
+  double stops[NRGBs] = { 0.00, 0.50, 1.00 };
+  double red[NRGBs]   = { 0.00, 1.00, 1.00 };
+  double green[NRGBs] = { 0.00, 1.00, 0.00 };
+  double blue[NRGBs]  = { 1.00, 1.00, 0.00 };
+  TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue, NCont);
+  gStyle->SetNumberContours(NCont);
 }

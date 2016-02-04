@@ -29,9 +29,10 @@ private:
   static const double kb = 8.61733e-5;//Boltzmann constant
   double chi_sq(const double *p);
   double spectrum(double E, const double *p);
-  double spect(double_t *E, double *p);
+  double spect(double *E, double *p);
   double cover(double E, Foil foil);
   void cholcov_conv(double covmat[npar][npar], double cholcovmat[npar][npar]);
+  void setstyle();
 };
 
 #endif

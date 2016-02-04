@@ -1,16 +1,17 @@
 [GLOBAL]
 Spectrum    2  #Draw energy spectrum. 2:draw with error, 1:draw without error, 0: no.
-Covariance  0  #Draw covariance matrix of errors. 1:yes, 0:no.
-Correlation 0  #Draw correlation matrix of errors. 1:yes, 0:no.
+Covariance  1  #Draw covariance matrix of errors. 1:yes, 0:no.
+Correlation 1  #Draw correlation matrix of errors. 1:yes, 0:no.
 
 [COVERS]
 #Name  File  Density[g/cm3]  Mass_number  Abundance  Thickness[cm]
-113Cd_0.05mm  xsec_cover/113cd_capture.txt  8.65  112.411  0.1222  0.005
+113Cd_0.1mm  xsec_cover/113cd_capture.txt  8.65  112.411  0.1222  0.01
 113Cd_0.5mm  xsec_cover/113cd_capture.txt  8.65  112.411  0.1222  0.05
 
 [FOILS]
 #Name  File  Density[g/cm3]  Mass_number  Abundance  Thickness[cm]  Produced_RI  Error_on_produced_RI  Covers...
-197Au   xsec_foil/197au_198au.txt  19.3  196.967  1.  0.002  0.0241   0.000241
-197Au_Cd   xsec_foil/197au_198au.txt  19.3  196.967  1.  0.002  0.00601   0.0000601 113Cd_0.05mm
-45Sc_Cd   xsec_foil/45sc_46sc.txt  2.985  44.9591  1  0.01  7.691e-5  7.691e-7  113Cd_0.5mm
-164Dy_Cd   xsec_foil/164dy_165dy.txt  8.54  162.5  0.2826  0.01  0.000877  0.00000877  113Cd_0.5mm
+197Au   xsec_foil/197au_198au.txt  19.3  196.967  1.  0.002  1.034e8  0.01
+197Au_Cd   xsec_foil/197au_198au.txt  19.3  196.967  1.  0.002  2.578e7  0.01  113Cd_0.1mm
+45Sc_Cd   xsec_foil/45sc_46sc.txt  2.985  44.9591  1.  0.01  3.300e5  0.01  113Cd_0.5mm
+164Dy_Cd   xsec_foil/164dy_165dy.txt  8.54  162.5  0.2826  0.01  3.762e6  0.01  113Cd_0.5mm
+#59Co_Cd   xsec_foil/59co_60co.txt  8.9  58.933  1.  0.01  2.518e6  0.01  113Cd_0.5mm
