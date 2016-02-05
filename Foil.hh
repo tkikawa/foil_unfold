@@ -7,12 +7,13 @@
 class Foil : public Material
 {
 public:
-  Foil(std::string NAME, std::string XSECFILE, double DENSITY, double a, double ABUNDANCE, double THICKNESS, double ri, double ri_ERR);
+  Foil(std::string NAME, std::string XSECFILE, double DENSITY, double a, double ABUNDANCE, double THICKNESS, double AREA, double ri, double ri_ERR);
   virtual ~Foil();
 
 public:
-  double RI;//number of produced RI
-  double RI_err;//uncertainty of number of produced RI
+  double RI;//Activation rate [/sec.]
+  double RI_err;//Uncertainty of activation rate
+  double area;//cm^2
   std::vector<Cover> covers;
   void AddCover(Cover cover);
 };

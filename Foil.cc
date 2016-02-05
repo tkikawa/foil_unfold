@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Foil.hh"
 
-Foil::Foil(std::string NAME, std::string XSECFILE, double DENSITY, double a, double ABUNDANCE, double THICKNESS, double ri, double ri_ERR)
+Foil::Foil(std::string NAME, std::string XSECFILE, double DENSITY, double a, double ABUNDANCE, double THICKNESS, double AREA, double ri, double ri_ERR)
 {
   name = NAME;
   xsecfile = XSECFILE;
@@ -9,6 +9,7 @@ Foil::Foil(std::string NAME, std::string XSECFILE, double DENSITY, double a, dou
   A = a;
   abundance = ABUNDANCE;
   thickness = THICKNESS;
+  area = AREA;
   RI = ri;
   RI_err = ri_ERR;
   ReadXsecFile();

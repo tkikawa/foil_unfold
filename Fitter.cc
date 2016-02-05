@@ -15,6 +15,7 @@ Fitter::Fitter()
   min->SetMaxIterations(10000); // for GSL
   min->SetTolerance(0.001);
   min->SetPrintLevel(1);
+  setstyle();
 }
 
 Fitter::~Fitter()
@@ -63,7 +64,7 @@ double Fitter::chi_sq(const double *p){
   for(unsigned int i=0;i<foils.size();i++){
     RI_exp = 0;
     for(int j=0;j<foils[i].N-1;j++){
-      RI_exp += cover((foils[i].energy[j+1]+foils[i].energy[j])/2,foils[i])*spectrum((foils[i].energy[j+1]+foils[i].energy[j])/2,p)*(foils[i].energy[j+1]-foils[i].energy[j])*(foils[i].xsec[j+1]+foils[i].xsec[j])/2*foils[i].density*foils[i].thickness*foils[i].abundance/foils[i].A*NA;
+      RI_exp += cover((foils[i].energy[j+1]+foils[i].energy[j])/2,foils[i])*spectrum((foils[i].energy[j+1]+foils[i].energy[j])/2,p)*(foils[i].energy[j+1]-foils[i].energy[j])*(foils[i].xsec[j+1]+foils[i].xsec[j])/2*foils[i].density*foils[i].thickness*foils[i].area*foils[i].abundance/foils[i].A*NA;
     }
     chi2 += pow(foils[i].RI-RI_exp,2)/pow(foils[i].RI*foils[i].RI_err,2);
   }
@@ -112,11 +113,10 @@ void Fitter::DrawSpectrum(bool err)
   spec->SetLineColor(1);
   spec->SetLineWidth(2);
 
-  setstyle();
   if(!err){
     TCanvas *c1 = new TCanvas("c1","c1");
     spec->GetXaxis()->SetTitle("Neutron energy (eV)");
-    spec->GetYaxis()->SetTitle("Neutron flux (/eV)");
+    spec->GetYaxis()->SetTitle("Neutron flux (/cm^{2}/eV/sec.)");
     spec->Draw();
     c1->Draw();
     c1->SetLogx();
@@ -180,7 +180,7 @@ void Fitter::DrawSpectrum(bool err)
     hcont->SetContour(1,param);
     TCanvas *c1 = new TCanvas("c1","c1");
     hcont->GetXaxis()->SetTitle("Neutron energy (eV)");
-    hcont->GetYaxis()->SetTitle("Neutron flux (/eV)");
+    hcont->GetYaxis()->SetTitle("Neutron flux (/cm^{2}/eV/sec.)");
     hcont->Draw("cont3");
     spec->Draw("same");
     c1->Draw();
@@ -220,7 +220,6 @@ void Fitter::DrawCovariance()
   std::cout<<cov_mat->GetBinContent(1,3)<<" "<<cov_mat->GetBinContent(2,3)<<" "<<cov_mat->GetBinContent(3,3)<<" "<<cov_mat->GetBinContent(4,3)<<std::endl;
   std::cout<<cov_mat->GetBinContent(1,4)<<" "<<cov_mat->GetBinContent(2,4)<<" "<<cov_mat->GetBinContent(3,4)<<" "<<cov_mat->GetBinContent(4,4)<<std::endl;
 
-  setstyle();
   TCanvas *c1 = new TCanvas("c1","c1",0,0,600,600);
   cov_mat->GetZaxis()->SetRangeUser(-max,max);
   cov_mat->SetMarkerSize(2);
@@ -244,7 +243,6 @@ void Fitter::DrawCorrelation()
   std::cout<<cor_mat->GetBinContent(1,3)<<" "<<cor_mat->GetBinContent(2,3)<<" "<<cor_mat->GetBinContent(3,3)<<" "<<cor_mat->GetBinContent(4,3)<<std::endl;
   std::cout<<cor_mat->GetBinContent(1,4)<<" "<<cor_mat->GetBinContent(2,4)<<" "<<cor_mat->GetBinContent(3,4)<<" "<<cor_mat->GetBinContent(4,4)<<std::endl;
 
-  setstyle();
   TCanvas *c1 = new TCanvas("c1","c1",0,0,600,600);
   cor_mat->GetZaxis()->SetRangeUser(-1,1);
   cor_mat->SetMarkerSize(2);

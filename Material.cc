@@ -21,7 +21,7 @@ void Material::ReadXsecFile()
   }
   while(data>>x>>y){
     x *= 1e6; //MeV->eV
-    y *= 1e-24; //barn->cm2
+    y *= 1e-24; //barn->cm^2
     energy.push_back(x);
     xsec.push_back(y);
   }

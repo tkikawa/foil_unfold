@@ -14,7 +14,7 @@ public:
 public:
   std::string name;
   std::string xsecfile;
-  double density;//g/cm3
+  double density;//g/cm^3
   double A;//mass number
   double abundance;
   double thickness;//cm

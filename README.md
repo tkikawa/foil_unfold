@@ -49,10 +49,13 @@ This card specifies the general information of the program.
 ### COVERS
 This card specifies the information about the covers surrouding the activation foils.
 Properties of the covers are listed in the following style.
-Name, Cross_section_file, Density[g/cm3], Mass_number, Abundance, Thickness[cm]
+Name, Cross_section_file, Density[g/cm^3], Mass_number, Abundance, Thickness[cm]
 
 ### FOILS
 This card specifies the information about the activation foils.
 Properties of the foils are listed in the following style.
-Name, Cross_section_file, Density[g/cm3], Mass_number, Abundance, Thickness[cm], Produced_RI, Error_on_produced_RI, Covers...
-More than one cover can be used for one foil.
+Name, Cross_section_file, Density[g/cm^3], Mass_number, Abundance, Thickness[cm], Area[cm^2],  Activation_rate[/sec.],  Error_on_activation_rate, Covers...
+One or more covers can be used for one foil.
+Activation rate is calculated from the number of counts in the Ge detector as follows.
+
+$$R=\frac{C}{\tau\epsilon(1-exp(\frac{-t_b}{\tau}))exp(\frac{-t_c}{\tau})(1-exp(\frac{-t_m}{\tau}))}$$

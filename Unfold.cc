@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
   std::istringstream(config["GLOBAL"]["Correlation"])>> drawcor;
 
   std::string name, xsecfile, cov;
-  double density, A, abundance, thickness, RI, RI_err;
+  double density, A, abundance, thickness, area, RI, RI_err;
   std::vector<Cover> covers;
   std::cout<<"Loading cover data"<<std::endl;
   for(std::map<std::string, std::string>::iterator i = config["COVERS"].begin(); i != config["COVERS"].end(); i++){
@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
   for(std::map<std::string, std::string>::iterator i = config["FOILS"].begin(); i != config["FOILS"].end(); i++){
     name = i->first;
     std::istringstream ss(i->second);
-    ss >> xsecfile >> density >> A >> abundance >> thickness >> RI >> RI_err;
-    Foil *foil = new Foil(name, xsecfile, density, A, abundance, thickness, RI, RI_err);
+    ss >> xsecfile >> density >> A >> abundance >> thickness >> area >> RI >> RI_err;
+    Foil *foil = new Foil(name, xsecfile, density, A, abundance, thickness, area, RI, RI_err);
     while(ss >> cov){
       for(unsigned int j=0;j<covers.size();j++){
 	if(cov == covers[j].name){
