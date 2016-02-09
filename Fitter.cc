@@ -124,7 +124,10 @@ void Fitter::DrawSpectrum(bool err)
     c1->WaitPrimitive();
   }
   else{
-    double xedge[1110], yedge[1001], ymin, ymax, yint;
+    double xedge[1110], yedge[1001], ymin, ymax, yint, cedge[111];
+    for(int k=0;k<111;k++){
+      cedge[k] = 1e-4*pow(10,0.1*k);
+    }
     for(int k=0;k<1101;k++){
       xedge[k] = 1e-4*pow(10,0.01*k);
     }
@@ -147,7 +150,17 @@ void Fitter::DrawSpectrum(bool err)
     cholcov_conv(cov_mat, chol_mat);
     double nrand[npar], par[npar];
     TRandom3 rand;
-    double E;
+    double ene[1100], cene[110], nom[110], var[110];
+    TH2D *hcov = new TH2D("hcov","hcov",110,cedge,110,cedge);
+    TH2D *hcor = new TH2D("hcor","hcor",110,cedge,110,cedge);
+    
+    for(int l=0;l<1100;l++){
+      ene[l] = 1e-4*pow(10,0.005+0.01*l);
+    }
+    for(int l=0;l<110;l++){
+      cene[l] = 1e-4*pow(10,0.05+0.1*l);
+      nom[l] = spectrum(cene[l],p);
+    }
 
     std::cout<<"Start toy MC for error estimation"<<std::endl;
     for(int k=0;k<100000;k++){
@@ -163,10 +176,21 @@ void Fitter::DrawSpectrum(bool err)
       }
       if(par[0]<0||par[1]<0||par[2]<0||par[3]<0)continue;
       for(int l=0;l<1100;l++){
-	E = 1e-4*pow(10,0.005+0.01*l);
-	htmp[l]->Fill(spectrum(E,par));
+	htmp[l]->Fill(spectrum(ene[l],par));
       }
+     
+      for(int l=0;l<110;l++){
+	var[l] = spectrum(cene[l],par);
+      }
+
+      for(int l=0;l<110;l++){
+	for(int m=0;m<110;m++){
+	  hcov->Fill(cene[l],cene[m],(var[l]-nom[l])*(var[m]-nom[m])/nom[l]/nom[m]/100000.);
+	}
+      }
+
     }
+
     TH2D *hcont = new TH2D("hcont","hcont",1100,xedge,1000,yedge);
     TH1D *herr = new TH1D("herr","herr",1100,xedge);
     for(int l=0;l<1100;l++){
@@ -175,6 +199,14 @@ void Fitter::DrawSpectrum(bool err)
       }
       herr->SetBinContent(l+1,htmp[l]->GetRMS()/htmp[l]->GetMean()*100);
     }
+
+    double max = 0;
+    for(int l=0;l<110;l++){
+      for(int m=0;m<110;m++){
+	hcor->SetBinContent(l+1,m+1,hcov->GetBinContent(l+1,m+1)/sqrt(hcov->GetBinContent(l+1,l+1)*hcov->GetBinContent(m+1,m+1)));
+      if(fabs(hcov->GetBinContent(l+1,l+1))>max)max = fabs(hcov->GetBinContent(l+1,l+1));
+      }
+    }     
 
     double param[1]={exp(-0.5)};
     hcont->SetContour(1,param);
@@ -198,6 +230,26 @@ void Fitter::DrawSpectrum(bool err)
     c2->Draw();
     c2->SetLogx();
     c2->WaitPrimitive();
+
+    TCanvas *c3 = new TCanvas("c3","c3",0,0,600,600);
+    hcov->GetZaxis()->SetRangeUser(-max,max);
+    hcov->GetXaxis()->SetTitle("Neutron energy (eV)");
+    hcov->GetYaxis()->SetTitle("Neutron energy (eV)");
+    hcov->Draw("colz");
+    c3->Draw();
+    c3->SetLogx();
+    c3->SetLogy();
+    c3->WaitPrimitive();
+
+    TCanvas *c4 = new TCanvas("c4","c4",0,0,600,600);
+    hcor->GetZaxis()->SetRangeUser(-1,1);
+    hcor->GetXaxis()->SetTitle("Neutron energy (eV)");
+    hcor->GetYaxis()->SetTitle("Neutron energy (eV)");
+    hcor->Draw("colz");
+    c4->Draw();
+    c4->SetLogx();
+    c4->SetLogy();
+    c4->WaitPrimitive();
 
   }
 }
