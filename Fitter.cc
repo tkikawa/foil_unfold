@@ -35,14 +35,14 @@ void Fitter::Fit()
 
   min->SetFunction(f);
 
-  min->SetLowerLimitedVariable(0,"A",5.e9, 5.e7, 0);
-  //min->SetFixedVariable(0,"A",4.80e9);
-  min->SetLowerLimitedVariable(1,"T",80., 0.8, 0);
-  //min->SetFixedVariable(1,"T",8.02051e1);
-  min->SetLowerLimitedVariable(2,"B",5.e7, 5.e5, 0);
-  //min->SetFixedVariable(2,"B",5.464e7);
-  min->SetLowerLimitedVariable(3,"C",1., 0.01, 0);
-  //min->SetFixedVariable(3,"C",1.14278);
+  min->SetLowerLimitedVariable(0,"A",4.80268e9, 5.e7, 0);
+  //min->SetFixedVariable(0,"A",4.80268e9);
+  min->SetLowerLimitedVariable(1,"T",80.2798, 0.8, 0);
+  //min->SetFixedVariable(1,"T",80.2798);
+  min->SetLowerLimitedVariable(2,"B",5.45585e7, 5.e5, 0);
+  //min->SetFixedVariable(2,"B",5.45585e7);
+  min->SetLowerLimitedVariable(3,"C",1.1423, 0.01, 0);
+  //min->SetFixedVariable(3,"C",1.1423);
 
   // do the minimization
   bool converge = min->Minimize();
@@ -68,7 +68,6 @@ double Fitter::chi_sq(const double *p){
     }
     chi2 += pow(foils[i].RI-RI_exp,2)/pow(foils[i].RI*foils[i].RI_err,2);
   }
-  chi2 /= foils.size();
   return chi2;
 }
 
@@ -221,8 +220,8 @@ void Fitter::DrawSpectrum(bool err)
     c1->WaitPrimitive();
 
     TCanvas *c2 = new TCanvas("c2","c2");
-    herr->GetXaxis()->SetRangeUser(0,100);
-    herr->SetLineColor(1);
+    herr->GetYaxis()->SetRangeUser(0,100);
+    herr->SetLineColor(2);
     herr->SetLineWidth(2);
     herr->GetXaxis()->SetTitle("Neutron energy (eV)");
     herr->GetYaxis()->SetTitle("Neutron flux error (%)");
