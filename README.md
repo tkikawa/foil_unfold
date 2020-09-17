@@ -3,8 +3,7 @@ Unfolding code for the neutron spectrometry with activation foils
 
 This is the unfolding code for the neutron spectrometry with activation foils. It was developped for [the TRIUMF UCN experiment](http://www.triumf.ca/ucn).
 
-1. External library and data
------------
+## 1. External library and data
 
 ### ROOT
 [ROOT](https://root.cern.ch/) is an object-oriented program and library developed by CERN. ROOT::Minuit2 is used for the unfolding. ROOT v5.34.32 was tested.
@@ -15,8 +14,7 @@ They were taken from [Evaluated Nuclear Data File (ENDF)](http://www.nndc.bnl.go
 The first column is the energy (MeV) and the second column is the cross section (barn).
 You can take new cross section data from ENDF.
 
-2. Installation
-------------------
+## 2. Installation
 
 ### Installation of ROOT
 - Download the codes from [ROOT website](https://root.cern.ch/downloading-root) and decompress it.
@@ -28,14 +26,12 @@ export LD_LIBRARY_PATH=${ROOTSYS}/lib:${LD_LIBRARY_PATH}
 ### Installation of this unfolding code
 - make
 
-3. Run the simulation
-------------------
+## 3. Run the simulation
 
 ### Usage
 - Unfold {input card file}
 
-4. Input card file
-------------------------
+## 4. Input card file
 
 Input file of this code is the text file containing a sequence of option lines (so-called "cards").
 "input.card" is a example of the input card file.
